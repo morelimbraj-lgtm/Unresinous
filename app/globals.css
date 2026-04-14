@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-obsidian: #050505;
+  --color-charcoal: #0D0D0D;
+  --color-titanium: #F2F2F2;
+  --color-accent: var(--accent);
+  
+  /* Typography Scale */
+  --font-medium: 500;
+  --font-bold: 700;
+  --font-black: 900;
+}
+
+:root {
+  --bg-dark: #050505;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.5);
+  --glass-bg: rgba(255, 255, 255, 0.02);
+  --glass-border: rgba(255, 255, 255, 0.06);
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+}
+
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Custom noise texture */
+.noise {
+  background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+  background-blend-mode: overlay;
+}
