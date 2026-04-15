@@ -1,11 +1,10 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion';
+import { motion, useTransform, useSpring, useMotionValue } from 'framer-motion';
 import { ShoppingBag, User, Heart, ArrowRight, ArrowLeft, Plus, Minus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import ScrollLottiePlayer from '@/components/ScrollLottiePlayer';
 
 export default function Home() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -13,15 +12,17 @@ export default function Home() {
   // Virtual Scroll Logic: Track progress without physical page height
   const scrollProgress = useMotionValue(0);
   const smoothProgress = useSpring(scrollProgress, {
-    stiffness: 80,
-    damping: 30,
+    stiffness: 24,
+    damping: 26,
+    mass: 1.8,
     restDelta: 0.001,
   });
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // Sensitivity factor
-      const sensitivity = 1500; 
+      // Make each wheel gesture advance the sequence more decisively while
+      // still letting the spring provide the premium glide.
+      const sensitivity = 700; 
       const current = scrollProgress.get();
       const next = Math.max(0, Math.min(1, current + e.deltaY / sensitivity));
       scrollProgress.set(next);
@@ -33,7 +34,7 @@ export default function Home() {
     const handleTouchMove = (e: TouchEvent) => {
       const delta = touchStart - e.touches[0].clientY;
       const current = scrollProgress.get();
-      const next = Math.max(0, Math.min(1, current + delta / 800));
+      const next = Math.max(0, Math.min(1, current + delta / 650));
       scrollProgress.set(next);
       touchStart = e.touches[0].clientY;
     };
@@ -48,33 +49,38 @@ export default function Home() {
     };
   }, [scrollProgress]);
 
-  // Background color transitions (Aligned with spatial movement)
-  const backgroundColor = useTransform(smoothProgress, [0, 0.4, 0.6, 1], ['#1a0b02', '#021a1a', '#021a1a', '#11021a']);
-  const accentColor = useTransform(smoothProgress, [0, 0.4, 0.6, 1], ['#ff6321', '#00f0ff', '#00f0ff', '#b500ff']);
-  const textColor = useTransform(smoothProgress, [0, 0.4, 0.6, 1], ['#FFFFFF', '#F5F5F7', '#F5F5F7', '#FFFFFF']);
-  const glowColor = useTransform(smoothProgress, [0, 0.4, 1], ['rgba(255,255,255,0.05)', 'rgba(0,240,255,0.03)', 'rgba(181,0,255,0.03)']);
+  // Fixed dark navy palette.
+  const backgroundColor = '#030814';
+  const accentColor = '#84abff';
+  const textColor = '#eef3ff';
+  const glowColor = 'rgba(132,171,255,0.12)';
 
   // UI Element Animations
   const priceOpacity = useTransform(smoothProgress, [0, 0.1, 0.4, 0.5, 0.9, 1], [1, 0, 0, 1, 0, 1]);
   const textOpacity = useTransform(smoothProgress, [0, 0.1], [1, 0.2]);
 
-  // Spatial Jacket Animations (Corner to Center)
-  // Jacket 1: Center -> Down
-  const j1Y = useTransform(smoothProgress, [0, 0.4], [0, 500]);
-  const j1Opacity = useTransform(smoothProgress, [0, 0.3], [1, 0]);
-  const j1Scale = useTransform(smoothProgress, [0, 0.4], [1, 0.6]);
+  // Spatial Jacket Animations: launch with the hero jacket locked in the center,
+  // then hand off each following jacket from right -> center -> left.
+  const sideLaneY = 18;
 
-  // Jacket 2: Top-Right -> Center -> Down
-  const j2X = useTransform(smoothProgress, [0, 0.4, 0.6, 1], [400, 0, 0, 0]);
-  const j2Y = useTransform(smoothProgress, [0, 0.4, 0.6, 1], [-400, 0, 0, 500]);
-  const j2Opacity = useTransform(smoothProgress, [0, 0.1, 0.4, 0.6, 0.9], [0.3, 1, 1, 1, 0]);
-  const j2Scale = useTransform(smoothProgress, [0, 0.4], [0.3, 1]);
+  const j1X = useTransform(smoothProgress, [0, 0.14, 0.26, 0.38, 0.48, 1], [0, 0, 0, -220, -720, -720]);
+  const j1Y = useTransform(smoothProgress, [0, 0.14, 0.26, 0.38, 0.48, 1], [0, -4, -8, 2, sideLaneY, sideLaneY]);
+  const j1Opacity = useTransform(smoothProgress, [0, 0.24, 0.40, 0.50, 1], [1, 1, 0.86, 0, 0]);
+  const j1Scale = useTransform(smoothProgress, [0, 0.10, 0.22, 0.38, 0.48, 1], [1.02, 1.05, 1.02, 0.94, 0.76, 0.76]);
 
-  // Jacket 3: Bottom-Left -> Center
-  const j3X = useTransform(smoothProgress, [0, 0.6, 1], [-400, -400, 0]);
-  const j3Y = useTransform(smoothProgress, [0, 0.6, 1], [400, 400, 0]);
-  const j3Opacity = useTransform(smoothProgress, [0, 0.6, 0.7, 1], [0.2, 0.2, 1, 1]);
-  const j3Scale = useTransform(smoothProgress, [0, 0.6, 1], [0.3, 0.3, 1]);
+  const j2X = useTransform(smoothProgress, [0, 0.18, 0.24, 0.32, 0.50, 0.62, 0.72, 1], [840, 840, 620, 0, 0, -80, -720, -720]);
+  const j2Y = useTransform(smoothProgress, [0, 0.18, 0.24, 0.32, 0.50, 0.62, 0.72, 1], [sideLaneY, sideLaneY, 10, 0, -4, 0, sideLaneY, sideLaneY]);
+  const j2Opacity = useTransform(smoothProgress, [0, 0.18, 0.22, 0.24, 0.32, 0.58, 0.70, 0.76, 1], [0, 0, 0.08, 0.28, 1, 1, 0.82, 0, 0]);
+  const j2Scale = useTransform(smoothProgress, [0, 0.18, 0.24, 0.32, 0.42, 0.58, 0.72, 1], [0.56, 0.56, 0.64, 1, 1.04, 1.01, 0.76, 0.76]);
+
+  const j3X = useTransform(smoothProgress, [0, 0.44, 0.50, 0.60, 0.74, 1], [840, 840, 620, 0, 0, 0]);
+  const j3Y = useTransform(smoothProgress, [0, 0.44, 0.50, 0.60, 0.74, 1], [sideLaneY, sideLaneY, 10, 0, -6, -4]);
+  const j3Opacity = useTransform(smoothProgress, [0, 0.44, 0.48, 0.50, 0.60, 1], [0, 0, 0.08, 0.28, 1, 1]);
+  const j3Scale = useTransform(smoothProgress, [0, 0.44, 0.50, 0.60, 0.68, 0.84, 1], [0.56, 0.56, 0.64, 1, 1.04, 1, 1.02]);
+
+  const stageX = useTransform(smoothProgress, [0, 1], [12, -28]);
+  const stageY = useTransform(smoothProgress, [0, 0.5, 1], [8, 0, -12]);
+  const stageScale = useTransform(smoothProgress, [0, 0.5, 1], [1.02, 1, 0.98]);
 
   // Cursor light reflection
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -111,7 +117,7 @@ export default function Home() {
       {/* Primary Ambient Glow */}
       <motion.div 
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vh] z-0 pointer-events-none opacity-40"
-        style={{ background: useTransform(glowColor, (color) => `radial-gradient(circle at 50% 50%, ${color.replace('0.03', '0.2')} 0%, transparent 60%)`) }}
+        style={{ background: `radial-gradient(circle at 50% 50%, ${glowColor} 0%, transparent 60%)` }}
       />
 
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] noise z-[1]" />
@@ -152,7 +158,7 @@ export default function Home() {
               <span className="text-white/40">Style with</span><br/>
               <motion.span 
                 className="font-black"
-                style={{ color: useTransform(smoothProgress, [0, 0.5], ['#ffffff', '#ff6321']) }}
+                style={{ color: accentColor }}
               >
                 Comfort
               </motion.span>
@@ -160,44 +166,49 @@ export default function Home() {
           </motion.div>
 
           {/* Spatial Models Area */}
-          <div className="relative w-full h-[60vh] flex items-center justify-center z-10">
+          <motion.div
+            className="relative z-10 flex h-[62vh] w-full items-center justify-center"
+            style={{ x: stageX, y: stageY, scale: stageScale }}
+          >
+            <div className="pointer-events-none absolute inset-x-[8%] bottom-[7%] h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-[16%] bottom-[11%] h-[22vh] rounded-full bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),rgba(255,255,255,0.03)_36%,transparent_72%)] blur-3xl" />
             
             {/* Jacket 1 (Primary -> Out) */}
             <motion.div 
-              className="absolute inset-0 flex items-center justify-center p-8"
-              style={{ y: j1Y, opacity: j1Opacity, scale: j1Scale, rotateX: mousePosition.y * -0.1, rotateY: mousePosition.x * 0.1 }}
-              animate={{ y: [0, -15, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute inset-0 flex items-center justify-center px-8 pb-6 pt-2 md:px-10"
+              style={{ x: j1X, y: j1Y, opacity: j1Opacity, scale: j1Scale, rotateX: mousePosition.y * -0.1, rotateY: mousePosition.x * 0.1 }}
             >
-              <Image src="/jacket-1.png" alt="J1" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_60px_100px_rgba(0,0,0,0.5)]" priority />
+              <div className="relative flex h-full w-full max-w-[780px] items-center justify-center">
+                <Image src="/jacket-1.png" alt="J1" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_80px_120px_rgba(0,0,0,0.45)]" priority />
+              </div>
             </motion.div>
 
-            {/* Jacket 2 (Top Right -> Center -> Out) */}
+            {/* Jacket 2 (Right -> Center -> Left) */}
             <motion.div 
-              className="absolute inset-0 flex items-center justify-center p-8"
+              className="absolute inset-0 flex items-center justify-center px-8 pb-6 pt-2 md:px-10"
               style={{ x: j2X, y: j2Y, opacity: j2Opacity, scale: j2Scale, rotateX: mousePosition.y * -0.1, rotateY: mousePosition.x * 0.1 }}
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
             >
-              <Image src="/jacket-2.png" alt="J2" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_60px_100px_rgba(0,0,0,0.5)]" />
+              <div className="relative flex h-full w-full max-w-[780px] items-center justify-center">
+                <Image src="/jacket-2.png" alt="J2" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_80px_120px_rgba(0,0,0,0.45)]" />
+              </div>
             </motion.div>
 
-            {/* Jacket 3 (Bottom Left -> Center) */}
+            {/* Jacket 3 (Right -> Center -> Left) */}
             <motion.div 
-              className="absolute inset-0 flex items-center justify-center p-8"
+              className="absolute inset-0 flex items-center justify-center px-8 pb-6 pt-2 md:px-10"
               style={{ x: j3X, y: j3Y, opacity: j3Opacity, scale: j3Scale, rotateX: mousePosition.y * -0.1, rotateY: mousePosition.x * 0.1 }}
-              animate={{ y: [0, -18, 0] }}
-              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
             >
-              <Image src="/jacket-3.png" alt="J3" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_60px_100px_rgba(0,0,0,0.5)]" />
+              <div className="relative flex h-full w-full max-w-[780px] items-center justify-center">
+                <Image src="/jacket-3.png" alt="J3" width={800} height={800} className="h-full w-auto object-contain drop-shadow-[0_80px_120px_rgba(0,0,0,0.45)]" />
+              </div>
             </motion.div>
 
             {/* Platform Glow */}
             <motion.div 
-              className="absolute bottom-0 w-[500px] h-[100px] blur-[80px] opacity-10"
-              style={{ background: useTransform(glowColor, (color) => `radial-gradient(ellipse at center, ${color.replace('0.03', '0.6')} 0%, transparent 70%)`), scaleX: 2 }}
+              className="absolute bottom-[3%] h-[124px] w-[560px] opacity-20 blur-[88px]"
+              style={{ background: `radial-gradient(ellipse at center, ${glowColor} 0%, transparent 72%)`, scaleX: 1.8 }}
             />
-          </div>
+          </motion.div>
 
           {/* Size Selector */}
           <div className="absolute top-1/2 -translate-y-1/2 right-0 flex flex-col gap-3 z-30">
